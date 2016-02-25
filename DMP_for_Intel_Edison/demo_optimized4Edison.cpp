@@ -14,6 +14,17 @@
 
 #include "MPU6050_4Edison.hpp"
 
+#include <stdio.h>
+#include <signal.h>
+#include <stdlib.h>
+
+void handler_signal(int signo)
+{
+    printf("receive a signal\n");
+    exit(0);
+}
+
+
 
 MPU6050 mpu_head;
 //MPU6050 mpu_body;
@@ -76,7 +87,36 @@ void loop() {
     //}
 }
 
-int main() {
+
+
+int main(int argc, char *argv[]){
+
+        int c;  
+        opterr = 0;   
+
+        while((c = getopt(argc, argv, "Oo:W:all")) != -1){  
+                printf("option char: %c\n", c);  
+                switch(c){  
+                case 'O':  
+                        printf("optimization flag is open.\n\n");  
+                        break;  
+                case 'o':  
+                        printf("the obj is: %s\n\n", optarg);  
+                        break;  
+                case 'W':  
+                        printf("optarg: %s\n\n", optarg);  
+                        break;          
+                case '?':  
+                        fprintf(stderr, "Usage: %s [-Wall] [-O] [-o arg] arg\n", argv[0]);  
+                        break;  
+                case ':':  
+                        fprintf(stderr, "miss option char in optstring.\n");  
+                        break;  
+                }  
+        }  
+
+    signal(SIGINT,handler_signal); 
+
     setup();
     usleep(100000);
 
