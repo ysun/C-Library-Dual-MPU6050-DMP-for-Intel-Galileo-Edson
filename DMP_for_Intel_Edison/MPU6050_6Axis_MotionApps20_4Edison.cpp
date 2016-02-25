@@ -326,7 +326,6 @@ long long MPU6050::getMilliTime(bool print) {
     useconds = millitime.tv_usec;
     mtime = (seconds * 1000) + (useconds / 1000.0) + 0.5;
 
-    if(print) printf("Seconds: %lld, Micro: %lld, Milli: %lld\n", seconds, useconds, mtime);
 
     return mtime;
 }
@@ -342,7 +341,6 @@ long long MPU6050::timeCheck()
 
     if (interval >= timeAvg)
     {
-        if(dmpDebug) printf("Interval\n");
         return cur;
     }/*
     else if (timeCountCatch < timeCountTarget)
@@ -350,7 +348,6 @@ long long MPU6050::timeCheck()
         printf("Count\n");
         return cur;
     }*/
-    else if(dmpDebug) printf("Pass %d >= %d and %d < %d - %lld\n", interval, timeAvg, timeCountCatch, timeCountTarget, cur);
 
     return 0;
 }
@@ -399,11 +396,9 @@ bool MPU6050::dmpStartDevice(uint8_t address, int xGyroOffset, int yGyroOffset, 
 
     if (testConnection())
     {
-        if(dmpDebug) printf("Connection OK\n");
         // load and configure the DMP
         if (dmpInitialize() == 0)
         {
-            if(dmpDebug) printf("DMP initialized\n");
             // turn on the DMP, now that it's ready
             setDMPEnabled(true);
 
@@ -433,11 +428,9 @@ bool MPU6050::dmpGetData()
 {
     long long time = timeCheck();
 
-    if(dmpDebug) printf("%lld ", time);
 
     if(dmpReady && time > 0)
     {
-        if(dmpDebug) printf("\n %lld \n", time);
 
         // get current FIFO count
         dmpFifoCount = getFIFOCount();
@@ -446,7 +439,6 @@ bool MPU6050::dmpGetData()
             // reset so we can continue cleanly
             resetFIFO();
             timeReset();
-            if(dmpDebug) printf("FIFO overflow!\n");
 
         // otherwise, check for DMP data ready interrupt (this should happen frequently)
         } else if (dmpFifoCount >= 42) {
@@ -664,14 +656,12 @@ uint8_t MPU6050::dmpInitialize() {
 
     // bytes)
     if (writeProgMemoryBlock(dmpMemory, MPU6050_DMP_CODE_SIZE)) {
-        printf("Success! DMP code written and verified.\n");
 
         // write DMP configuration
         //Writing DMP configuration to MPU memory banks (
 
         // bytes in config def)
         if (writeProgDMPConfigurationSet(dmpConfig, MPU6050_DMP_CONFIG_SIZE)) {
-            printf("Success! DMP configuration written and verified.\n");
 
             //Setting clock source to Z Gyro...
             setClockSource(MPU6050_CLOCK_PLL_ZGYRO);
@@ -726,7 +716,6 @@ uint8_t MPU6050::dmpInitialize() {
             uint8_t fifoCount = getFIFOCount();
             uint8_t fifoBuffer[128];
 
-            printf("Current FIFO count=%d\n", fifoCount);
             //fifoCount);
             if (fifoCount > 0)
 		getFIFOBytes(fifoBuffer, fifoCount);
@@ -767,10 +756,8 @@ uint8_t MPU6050::dmpInitialize() {
             for (j = 0; j < 4 || j < dmpUpdate[2] + 3; j++, pos++) dmpUpdate[j] = pgm_read_byte(&dmpUpdates[pos]);
             writeMemoryBlock(dmpUpdate + 3, dmpUpdate[2], dmpUpdate[0], dmpUpdate[1]);
 
-            printf("Waiting for FIFO count > 2...\n");
             while ((fifoCount = getFIFOCount()) < 3);
 
-            printf("Current FIFO count=%d",fifoCount);
 
             //Reading FIFO data...
             getFIFOBytes(fifoBuffer, fifoCount);

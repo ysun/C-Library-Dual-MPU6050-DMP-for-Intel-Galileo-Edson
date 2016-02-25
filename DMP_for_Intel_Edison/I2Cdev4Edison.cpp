@@ -330,11 +330,7 @@ bool I2Cdev4Edison::writeBitsW(uint8_t devAddr, uint8_t regAddr, uint8_t bitStar
  */
 bool I2Cdev4Edison::writeByte(uint8_t devAddr, uint8_t regAddr, uint8_t data) {
        	i2c->address(devAddr);
-       	mraa::Result result = i2c->writeReg(regAddr, data);
-       	if (result != mraa::SUCCESS){
-       		mraa::printError(result);
-       		return false;
-       	}
+       	i2c->writeReg(regAddr, data);
        	return true;
     //return writeBytes(devAddr, regAddr, 1, &data);
 }
@@ -347,11 +343,7 @@ bool I2Cdev4Edison::writeByte(uint8_t devAddr, uint8_t regAddr, uint8_t data) {
  */
 bool I2Cdev4Edison::writeWord(uint8_t devAddr, uint8_t regAddr, uint16_t data) {
       	i2c->address(devAddr);
-       	mraa::Result result = i2c->writeWordReg(regAddr, data);
-       	if (result != mraa::SUCCESS){
-       		mraa::printError(result);
-       		return false;
-       	}
+       	i2c->writeWordReg(regAddr, data);
        	return true;
     //return writeWords(devAddr, regAddr, 1, &data);
 }
@@ -386,11 +378,7 @@ bool I2Cdev4Edison::writeBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length,
     buf[0] = regAddr;
     memcpy(buf+1,data,length);
      //count = write(fd, buf, length+1);
-    mraa::Result result = i2c->write(buf, length + 1);
-    if (result != mraa::SUCCESS){
-       	mraa::printError(result);
-       	return false;
-    }
+    i2c->write(buf, length + 1);
     return true;
    /*
     if (count < 0) {
@@ -442,11 +430,7 @@ bool I2Cdev4Edison::writeWords(uint8_t devAddr, uint8_t regAddr, uint8_t length,
         buf[i*2+1] = data[i] >> 8;
         buf[i*2+2] = data[i];
     }
-    mraa::Result result = i2c->write(buf, length*2+1);
-    if (result != mraa::SUCCESS){
-       	mraa::printError(result);
-       	return false;
-    }
+    i2c->write(buf, length*2+1);
     return true;
     /*
     if (count < 0) {
