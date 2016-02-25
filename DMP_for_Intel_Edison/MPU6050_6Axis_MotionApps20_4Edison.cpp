@@ -509,6 +509,94 @@ bool MPU6050::dmpGetData()
     return false;
 }
 
+float MPU6050::dmpGetFirstYPRData()
+{
+    long long time = timeCheck();
+
+
+    if(dmpReady && time > 0)
+    {
+
+        // get current FIFO count
+        dmpFifoCount = getFIFOCount();
+
+        if (dmpFifoCount == 1024) {
+            // reset so we can continue cleanly
+            resetFIFO();
+            timeReset();
+
+        // otherwise, check for DMP data ready interrupt (this should happen frequently)
+        } else if (dmpFifoCount >= 42) {
+            timeCount(time);
+
+            // read a packet from FIFO
+            getFIFOBytes(dmpFifoBuffer, dmpPacketSize);
+
+            // display quaternion values in easy matrix form: w x y z
+            dmpGetQuaternion(&dmpQuat, dmpFifoBuffer);
+//            if(dmpDebug) printf("quat %7.2f %7.2f %7.2f %7.2f    ", dmpQuat.w,dmpQuat.x,dmpQuat.y,dmpQuat.z);
+
+            #ifdef OUTPUT_READABLE_EULER
+                // display Euler angles in degrees
+                dmpGetEuler(dmpEuler, &dmpQuat);
+                dmpEuler[0] = dmpEuler[0] * 180/M_PI;
+                dmpEuler[1] = dmpEuler[1] * 180/M_PI;
+                dmpEuler[2] = dmpEuler[2] * 180/M_PI;
+//                if(dmpDebug) printf("euler %7.2f %7.2f %7.2f    ", dmpEuler[0], dmpEuler[1], dmpEuler[2]);
+            #endif
+
+            #ifdef OUTPUT_READABLE_YAWPITCHROLL
+                // display Euler angles in degrees
+                dmpGetGravity(&dmpGravity, &dmpQuat);
+                dmpGetYawPitchRoll(dmpYawPitchRoll, &dmpQuat, &dmpGravity);
+                dmpYawPitchRoll[0] = dmpYawPitchRoll[0] * 180/M_PI;
+                dmpYawPitchRoll[1] = dmpYawPitchRoll[1] * 180/M_PI;
+                dmpYawPitchRoll[2] = dmpYawPitchRoll[2] * 180/M_PI;
+//                if(dmpDebug) printf("ypr  %7.2f %7.2f %7.2f    ", dmpYawPitchRoll[0], dmpYawPitchRoll[1], dmpYawPitchRoll[2]);
+                if(dmpDebug)
+                   return dmpYawPitchRoll[0];
+            #endif
+
+            #ifdef OUTPUT_READABLE_REALACCEL
+                // display real acceleration, adjusted to remove gravity
+                dmpGetAccel(&dmpAccel, dmpFifoBuffer);
+                dmpGetGravity(&dmpGravity, &dmpQuat);
+                dmpGetLinearAccel(&dmpAccelReal, &dmpAccel, &dmpGravity);
+//                if(dmpDebug) printf("areal %6d %6d %6d    ", dmpAccelReal.x, dmpAccelReal.y, dmpAccelReal.z);
+            #endif
+
+            #ifdef OUTPUT_READABLE_WORLDACCEL
+                // display initial world-frame acceleration, adjusted to remove gravity
+                // and rotated based on known orientation from quaternion
+                dmpGetAccel(&dmpAccel, dmpFifoBuffer);
+                dmpGetGravity(&dmpGravity, &dmpQuat);
+                dmpGetLinearAccelInWorld(&dmpAccelWorld, &dmpAccelReal, &dmpQuat);
+//                if(dmpDebug) printf("aworld %6d %6d %6d    ", dmpAccelWorld.x, dmpAccelWorld.y, dmpAccelWorld.z);
+            #endif
+
+            #ifdef OUTPUT_TEAPOT
+                // display quaternion values in InvenSense Teapot demo format:
+                dmpTeapotPacket[2] = dmpFifoBuffer[0];
+                dmpTeapotPacket[3] = dmpFifoBuffer[1];
+                dmpTeapotPacket[4] = dmpFifoBuffer[4];
+                dmpTeapotPacket[5] = dmpFifoBuffer[5];
+                dmpTeapotPacket[6] = dmpFifoBuffer[8];
+                dmpTeapotPacket[7] = dmpFifoBuffer[9];
+                dmpTeapotPacket[8] = dmpFifoBuffer[12];
+                dmpTeapotPacket[9] = dmpFifoBuffer[13];
+                //Serial.write(dmpTeapotPacket, 14);
+                dmpTeapotPacket[11]++; // packetCount, loops at 0xFF on purpose
+            #endif
+            printf("\n");
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
 /**
  * Quaternion
  * @return Quaternion[w, x, y, z]

@@ -805,6 +805,7 @@ class MPU6050 {
 
             bool dmpStartDevice(uint8_t address, int xGyroOffset, int yGyroOffset, int zGyroOffset);
             bool dmpGetData();
+            float dmpGetFirstYPRData();
             Quaternion getDmpQuaternion();
             VectorInt16 getDmpAccel();
             VectorInt16 getDmpAccelReal();

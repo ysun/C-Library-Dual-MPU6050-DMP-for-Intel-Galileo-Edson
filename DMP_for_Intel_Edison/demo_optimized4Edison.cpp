@@ -45,8 +45,12 @@ void setup() {
 // ===                    MAIN PROGRAM LOOP                     ===
 // ================================================================
 void loop() {
-    if(mpu_head.dmpGetData())
+    //if(mpu_head.dmpGetData())
+    float ret = mpu_head.dmpGetFirstYPRData();
+    if( int(ret) )
     {
+	printf("%7.2f\n", ret);
+
         //printf("quat %7.2f %7.2f %7.2f %7.2f    ", dmpQuat.w,dmpQuat.x,dmpQuat.y,dmpQuat.z);
         //printf("accell %6d %6d %6d    ", dmpAccel.x, dmpAccel.y, dmpAccel.z);
         //printf("areal %6d %6d %6d    ", dmpAccelReal.x, dmpAccelReal.y, dmpAccelReal.z);
